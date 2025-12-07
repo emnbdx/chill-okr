@@ -59,4 +59,50 @@ class ApiUserController
     $id = $this->repo->createIfNotExists($firstName, $lastName, $currentUser['company_id']);
     return json($res, ["id" => $id, "first_name" => $firstName, "last_name" => $lastName], 201);
   }
+
+  public function updateProfile(Request $req, Response $res): Response
+  {
+    $currentUser = $this->authService->getCurrentUser();
+    if (!$currentUser) {
+      return json($res, ['error' => 'Unauthorized'], 401);
+    }
+
+    $body = $req->getBody()->getContents();
+    $b = json_decode($body, true) ?: [];
+    $firstName = trim($b["first_name"] ?? "");
+    $lastName = trim($b["last_name"] ?? "");
+
+    if (empty($firstName) || empty($lastName)) {
+      return json($res, ["error" => "First name and last name are required"], 400);
+    }
+
+    $success = $this->repo->updateInfo($currentUser['id'], $firstName, $lastName);
+
+    if ($success) {
+      $this->authService->startSession([
+        'id' => $currentUser['id'],
+        'email' => $currentUser['email'],
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'company_id' => $currentUser['company_id']
+      ]);
+      return json($res, ["success" => true, "first_name" => $firstName, "last_name" => $lastName]);
+    }
+
+    return json($res, ["error" => "Failed to update profile"], 500);
+  }
+
+  public function getProfile(Request $req, Response $res): Response
+  {
+    $currentUser = $this->authService->getCurrentUser();
+    if (!$currentUser) {
+      return json($res, ['error' => 'Unauthorized'], 401);
+    }
+
+    unset($currentUser['password']);
+    unset($currentUser['reset_token']);
+    unset($currentUser['reset_token_expires']);
+
+    return json($res, $currentUser);
+  }
 }

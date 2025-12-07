@@ -52,6 +52,9 @@ $app->group("/api", function ($g) {
   $g->get("/users", \App\Controllers\ApiUserController::class . ":list");
   $g->post("/users", \App\Controllers\ApiUserController::class . ":create");
 
+  $g->get("/profile", \App\Controllers\ApiUserController::class . ":getProfile");
+  $g->patch("/profile", \App\Controllers\ApiUserController::class . ":updateProfile");
+
   $g->get("/nodes/{node_id}/key-results", \App\Controllers\ApiKeyResultController::class . ":list");
   $g->post("/nodes/{node_id}/key-results", \App\Controllers\ApiKeyResultController::class . ":create");
   $g->patch("/key-results/{id}", \App\Controllers\ApiKeyResultController::class . ":update");

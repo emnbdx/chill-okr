@@ -14,6 +14,13 @@
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+  <button onclick="toggleDarkMode()"
+    class="fixed top-6 right-6 z-50 w-14 h-14 flex items-center justify-center text-2xl rounded-full bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl border border-slate-200 dark:border-slate-700 transition-all duration-200 hover:scale-110"
+    aria-label="Toggle dark mode">
+    <span class="dark:hidden">🌙</span>
+    <span class="hidden dark:inline">☀️</span>
+  </button>
+
   <div class="max-w-6xl mx-auto p-8">
     <?php require $viewPath; ?>
   </div>

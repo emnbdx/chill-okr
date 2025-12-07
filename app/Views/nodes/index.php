@@ -7,27 +7,41 @@
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1" x-text="companyInfo.name"></p>
     </div>
     <div class="flex gap-3 items-center">
-      <button @click="openCompanyModal()"
-        class="px-6 py-4 text-base rounded-xl bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 font-semibold transition-all duration-200 hover:shadow-md hover:scale-105">
-        🏢 Company
-      </button>
-      <button @click="toggleAll()"
-        class="px-6 py-4 text-base rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-semibold transition-all duration-200 hover:shadow-md hover:scale-105">
-        <span x-text="allExpanded ? '🔽 Collapse all' : '▶️ Expand all'"></span>
-      </button>
       <button @click="openAddModal()"
-        class="px-8 py-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 font-semibold text-xl transition-all duration-200 hover:shadow-lg hover:scale-105">
+        class="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 font-semibold text-xl transition-all duration-200 hover:shadow-lg hover:scale-105">
         ➕ Add
       </button>
-      <button onclick="toggleDarkMode()" class="px-6 py-4 text-xl rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 font-semibold transition-all duration-200 hover:shadow-md hover:scale-105" aria-label="Toggle dark mode">
-        <span class="dark:hidden">🌙</span>
-        <span class="hidden dark:inline">☀️</span>
+      <button @click="toggleAll()"
+        class="px-5 py-4 text-base rounded-xl bg-slate-200/70 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-md">
+        <span x-text="allExpanded ? '🔽' : '▶️'"></span>
       </button>
-      <form method="POST" action="/auth/logout" class="inline">
-        <button type="submit" class="px-6 py-4 text-base rounded-xl bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-200 font-semibold transition-all duration-200 hover:shadow-md hover:scale-105">
-          🚪 Logout
+      <button @click="openCompanyModal()"
+        class="px-5 py-4 text-base rounded-xl bg-slate-200/70 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-md">
+        🏢
+      </button>
+      <div x-data="{open: false}" @click.away="open = false" class="relative">
+        <button @click="open = !open"
+          class="px-5 py-4 text-base rounded-xl bg-slate-200/70 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-md flex items-center gap-2">
+          <span x-text="profileInfo.first_name ? profileInfo.first_name.charAt(0).toUpperCase() + profileInfo.last_name.charAt(0).toUpperCase() : '👤'"></span>
         </button>
-      </form>
+        <div x-show="open" x-transition
+          class="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-slate-800 shadow-xl border dark:border-slate-600 py-2 z-50">
+          <div class="px-4 py-3 border-b dark:border-slate-600">
+            <p class="text-sm font-semibold dark:text-white" x-text="`${profileInfo.first_name} ${profileInfo.last_name}`"></p>
+            <p class="text-xs text-slate-500 dark:text-slate-400" x-text="profileInfo.email"></p>
+          </div>
+          <button @click="openProfileModal(); open = false"
+            class="w-full px-4 py-3 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white transition-colors flex items-center gap-2">
+            ✏️ Edit Profile
+          </button>
+          <form method="POST" action="/auth/logout" class="w-full">
+            <button type="submit"
+              class="w-full px-4 py-3 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700 text-red-600 dark:text-red-400 transition-colors flex items-center gap-2">
+              🚪 Logout
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -88,21 +102,6 @@
                 </div>
               </div>
 
-              <div class="mt-4 flex flex-wrap gap-3">
-                <template x-for="t in allowedChildTypes(n.type)" :key="t">
-                  <button @click="openCreate(n.id,t)"
-                    class="text-sm px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-sm hover:scale-105">
-                    ➕ <span x-text="labelType(t)"></span>
-                  </button>
-                </template>
-                <template x-if="n.type === 'okr_team' || n.type === 'okr_perso'">
-                  <button @click="openKeyResultsModal(n.id)"
-                    class="text-sm px-4 py-2 rounded-lg bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 font-medium transition-all duration-200 hover:shadow-sm hover:scale-105">
-                    ➕ Key Results
-                  </button>
-                </template>
-              </div>
-
               <template x-if="(n.type === 'okr_team' || n.type === 'okr_perso') && getKeyResults(n.id).length > 0">
                 <div class="mt-4 space-y-3">
                   <div class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Key Results:</div>
@@ -141,6 +140,21 @@
                   </template>
                 </div>
               </template>
+
+              <div class="mt-4 flex flex-wrap gap-3">
+                <template x-for="t in allowedChildTypes(n.type)" :key="t">
+                  <button @click="openCreate(n.id,t)"
+                    class="text-sm px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-sm hover:scale-105">
+                    ➕ <span x-text="labelType(t)"></span>
+                  </button>
+                </template>
+                <template x-if="n.type === 'okr_team' || n.type === 'okr_perso'">
+                  <button @click="openKeyResultsModal(n.id)"
+                    class="text-sm px-4 py-2 rounded-lg bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 font-medium transition-all duration-200 hover:shadow-sm hover:scale-105">
+                    ➕ Key Results
+                  </button>
+                </template>
+              </div>
             </div>
 
             <div class="flex shrink-0 gap-3">
@@ -208,21 +222,6 @@
                         </div>
                       </div>
 
-                      <div class="mt-2 flex flex-wrap gap-2">
-                        <template x-for="t in allowedChildTypes(c.type)" :key="t">
-                          <button @click="openCreate(c.id,t)"
-                            class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                            ➕ <span x-text="labelType(t)"></span>
-                          </button>
-                        </template>
-                        <template x-if="c.type === 'okr_team' || c.type === 'okr_perso'">
-                          <button @click="openKeyResultsModal(c.id)"
-                            class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                            ➕ Key Results
-                          </button>
-                        </template>
-                      </div>
-
                       <template x-if="(c.type === 'okr_team' || c.type === 'okr_perso') && getKeyResults(c.id).length > 0">
                         <div class="mt-3 space-y-2">
                           <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
@@ -261,6 +260,21 @@
                           </template>
                         </div>
                       </template>
+
+                      <div class="mt-2 flex flex-wrap gap-2">
+                        <template x-for="t in allowedChildTypes(c.type)" :key="t">
+                          <button @click="openCreate(c.id,t)"
+                            class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                            ➕ <span x-text="labelType(t)"></span>
+                          </button>
+                        </template>
+                        <template x-if="c.type === 'okr_team' || c.type === 'okr_perso'">
+                          <button @click="openKeyResultsModal(c.id)"
+                            class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                            ➕ Key Results
+                          </button>
+                        </template>
+                      </div>
                     </div>
 
                     <div class="flex shrink-0 gap-2">
@@ -328,20 +342,6 @@
                                   </div>
                                 </div>
                               </template>
-                              <div class="mt-2 flex flex-wrap gap-2">
-                                <template x-for="t in allowedChildTypes(child.type)" :key="t">
-                                  <button @click="openCreate(child.id, t)"
-                                    class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                    ➕ <span x-text="labelType(t)"></span>
-                                  </button>
-                                </template>
-                                <template x-if="child.type === 'okr_team' || child.type === 'okr_perso'">
-                                  <button @click="openKeyResultsModal(child.id)"
-                                    class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                    ➕ Key Results
-                                  </button>
-                                </template>
-                              </div>
 
                               <template x-if="(child.type === 'okr_team' || child.type === 'okr_perso') && getKeyResults(child.id).length > 0">
                                 <div class="mt-3 space-y-2">
@@ -381,6 +381,20 @@
                                   </template>
                                 </div>
                               </template>
+                              <div class="mt-2 flex flex-wrap gap-2">
+                                <template x-for="t in allowedChildTypes(child.type)" :key="t">
+                                  <button @click="openCreate(child.id, t)"
+                                    class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                    ➕ <span x-text="labelType(t)"></span>
+                                  </button>
+                                </template>
+                                <template x-if="child.type === 'okr_team' || child.type === 'okr_perso'">
+                                  <button @click="openKeyResultsModal(child.id)"
+                                    class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                    ➕ Key Results
+                                  </button>
+                                </template>
+                              </div>
                             </div>
                             <div class="flex shrink-0 gap-2">
                               <button @click="openComments(child.id)"
@@ -440,20 +454,6 @@
                                           </div>
                                         </div>
                                       </template>
-                                      <div class="mt-2 flex flex-wrap gap-2">
-                                        <template x-for="t in allowedChildTypes(grandchild.type)" :key="t">
-                                          <button @click="openCreate(grandchild.id, t)"
-                                            class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                            ➕ <span x-text="labelType(t)"></span>
-                                          </button>
-                                        </template>
-                                        <template x-if="grandchild.type === 'okr_team' || grandchild.type === 'okr_perso'">
-                                          <button @click="openKeyResultsModal(grandchild.id)"
-                                            class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                            ➕ Key Results
-                                          </button>
-                                        </template>
-                                      </div>
 
                                       <template x-if="(grandchild.type === 'okr_team' || grandchild.type === 'okr_perso') && getKeyResults(grandchild.id).length > 0">
                                         <div class="mt-3 space-y-2">
@@ -493,6 +493,20 @@
                                           </template>
                                         </div>
                                       </template>
+                                      <div class="mt-2 flex flex-wrap gap-2">
+                                        <template x-for="t in allowedChildTypes(grandchild.type)" :key="t">
+                                          <button @click="openCreate(grandchild.id, t)"
+                                            class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                            ➕ <span x-text="labelType(t)"></span>
+                                          </button>
+                                        </template>
+                                        <template x-if="grandchild.type === 'okr_team' || grandchild.type === 'okr_perso'">
+                                          <button @click="openKeyResultsModal(grandchild.id)"
+                                            class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                            ➕ Key Results
+                                          </button>
+                                        </template>
+                                      </div>
                                     </div>
                                     <div class="flex shrink-0 gap-2">
                                       <button @click="openComments(grandchild.id)"
@@ -552,20 +566,6 @@
                                                   </div>
                                                 </div>
                                               </template>
-                                              <div class="mt-2 flex flex-wrap gap-2">
-                                                <template x-for="t in allowedChildTypes(greatgrandchild.type)" :key="t">
-                                                  <button @click="openCreate(greatgrandchild.id, t)"
-                                                    class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                    ➕ <span x-text="labelType(t)"></span>
-                                                  </button>
-                                                </template>
-                                                <template x-if="greatgrandchild.type === 'okr_team' || greatgrandchild.type === 'okr_perso'">
-                                                  <button @click="openKeyResultsModal(greatgrandchild.id)"
-                                                    class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                    ➕ Key Results
-                                                  </button>
-                                                </template>
-                                              </div>
 
                                               <template x-if="(greatgrandchild.type === 'okr_team' || greatgrandchild.type === 'okr_perso') && getKeyResults(greatgrandchild.id).length > 0">
                                                 <div class="mt-3 space-y-2">
@@ -605,6 +605,20 @@
                                                   </template>
                                                 </div>
                                               </template>
+                                              <div class="mt-2 flex flex-wrap gap-2">
+                                                <template x-for="t in allowedChildTypes(greatgrandchild.type)" :key="t">
+                                                  <button @click="openCreate(greatgrandchild.id, t)"
+                                                    class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                    ➕ <span x-text="labelType(t)"></span>
+                                                  </button>
+                                                </template>
+                                                <template x-if="greatgrandchild.type === 'okr_team' || greatgrandchild.type === 'okr_perso'">
+                                                  <button @click="openKeyResultsModal(greatgrandchild.id)"
+                                                    class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                    ➕ Key Results
+                                                  </button>
+                                                </template>
+                                              </div>
                                             </div>
                                             <div class="flex shrink-0 gap-2">
                                               <button @click="openComments(greatgrandchild.id)"
@@ -664,20 +678,6 @@
                                                           </div>
                                                         </div>
                                                       </template>
-                                                      <div class="mt-2 flex flex-wrap gap-2">
-                                                        <template x-for="t in allowedChildTypes(okrPerso.type)" :key="t">
-                                                          <button @click="openCreate(okrPerso.id, t)"
-                                                            class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                            ➕ <span x-text="labelType(t)"></span>
-                                                          </button>
-                                                        </template>
-                                                        <template x-if="okrPerso.type === 'okr_team' || okrPerso.type === 'okr_perso'">
-                                                          <button @click="openKeyResultsModal(okrPerso.id)"
-                                                            class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                            ➕ Key Results
-                                                          </button>
-                                                        </template>
-                                                      </div>
 
                                                       <template x-if="(okrPerso.type === 'okr_team' || okrPerso.type === 'okr_perso') && getKeyResults(okrPerso.id).length > 0">
                                                         <div class="mt-3 space-y-2">
@@ -717,6 +717,20 @@
                                                           </template>
                                                         </div>
                                                       </template>
+                                                      <div class="mt-2 flex flex-wrap gap-2">
+                                                        <template x-for="t in allowedChildTypes(okrPerso.type)" :key="t">
+                                                          <button @click="openCreate(okrPerso.id, t)"
+                                                            class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                            ➕ <span x-text="labelType(t)"></span>
+                                                          </button>
+                                                        </template>
+                                                        <template x-if="okrPerso.type === 'okr_team' || okrPerso.type === 'okr_perso'">
+                                                          <button @click="openKeyResultsModal(okrPerso.id)"
+                                                            class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                            ➕ Key Results
+                                                          </button>
+                                                        </template>
+                                                      </div>
                                                     </div>
                                                     <div class="flex shrink-0 gap-2">
                                                       <button @click="openComments(okrPerso.id)"
@@ -1005,6 +1019,46 @@
               </template>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template x-if="profileModal.open">
+    <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-[100]">
+      <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-600 shadow-2xl p-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold dark:text-white">Edit Profile</h2>
+          <button @click="closeProfileModal()" class="text-2xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">✕</button>
+        </div>
+
+        <div class="space-y-5">
+          <div>
+            <label class="text-base font-semibold dark:text-slate-200">First Name</label>
+            <input x-model="profileModal.first_name"
+              class="mt-2 w-full text-base rounded-xl border dark:border-slate-600 dark:bg-slate-700 dark:text-white p-3">
+          </div>
+          <div>
+            <label class="text-base font-semibold dark:text-slate-200">Last Name</label>
+            <input x-model="profileModal.last_name"
+              class="mt-2 w-full text-base rounded-xl border dark:border-slate-600 dark:bg-slate-700 dark:text-white p-3">
+          </div>
+          <div>
+            <label class="text-base font-semibold dark:text-slate-200 text-slate-500">Email (read-only)</label>
+            <input :value="profileInfo.email" disabled
+              class="mt-2 w-full text-base rounded-xl border dark:border-slate-600 dark:bg-slate-600 bg-slate-100 text-slate-500 dark:text-slate-400 p-3 cursor-not-allowed">
+          </div>
+        </div>
+
+        <div class="mt-6 flex gap-3">
+          <button @click="updateProfile()"
+            class="flex-1 py-3 text-lg font-semibold rounded-xl bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 transition-all duration-200 hover:shadow-lg hover:scale-105">
+            💾 Save
+          </button>
+          <button @click="closeProfileModal()"
+            class="flex-1 py-3 text-lg font-semibold rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+            ❌ Cancel
+          </button>
         </div>
       </div>
     </div>
@@ -1382,7 +1436,7 @@
 
       unlockBodyScroll() {
         const hasOpenModal = this.modal.open || this.companyModal.open || this.commentsModal.open ||
-          this.addCommentModal.open || this.keyResultModal.open;
+          this.addCommentModal.open || this.keyResultModal.open || this.profileModal.open;
         if (hasOpenModal) return;
         document.body.style.overflow = '';
         document.body.style.paddingRight = '';
@@ -1450,10 +1504,22 @@
           weight: 1
         }
       },
+      profileInfo: {
+        id: null,
+        first_name: '',
+        last_name: '',
+        email: ''
+      },
+      profileModal: {
+        open: false,
+        first_name: '',
+        last_name: ''
+      },
       renderKey: 0,
       allExpanded: true,
 
       async init() {
+        await this.loadProfile()
         await this.loadCompanyInfo()
         await this.loadTeams()
         await this.loadUsers()
@@ -1590,6 +1656,56 @@
           }
         } catch (e) {
           showToast('Failed to remove user', 'error')
+        }
+      },
+
+      async loadProfile() {
+        const r = await fetch('/api/profile')
+        if (r.ok) {
+          const profile = await r.json()
+          this.profileInfo = profile
+        }
+      },
+
+      openProfileModal() {
+        this.lockBodyScroll()
+        this.profileModal = {
+          open: true,
+          first_name: this.profileInfo.first_name,
+          last_name: this.profileInfo.last_name
+        }
+      },
+
+      closeProfileModal() {
+        this.profileModal.open = false
+        this.unlockBodyScroll()
+      },
+
+      async updateProfile() {
+        if (!this.profileModal.first_name || !this.profileModal.last_name) {
+          showToast('First name and last name are required', 'warning')
+          return
+        }
+
+        const r = await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            first_name: this.profileModal.first_name,
+            last_name: this.profileModal.last_name
+          })
+        })
+
+        if (r.ok) {
+          await this.loadProfile()
+          await this.loadUsers()
+          this.closeProfileModal()
+          showToast('Profile updated successfully', 'success')
+        } else {
+          const err = await r.json().catch(() => ({}))
+          showToast(err.error || 'Failed to update profile', 'error')
         }
       },
 
