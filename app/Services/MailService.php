@@ -48,9 +48,9 @@ class MailService
   {
     $subject = "Invitation to join {$companyName}";
     $htmlContent = "
-      <h1>Invitation to join {$companyName} on OKR Flow</h1>
+      <h1>Invitation to join {$companyName} on Chill OKR</h1>
       <p>Hello {$toName},</p>
-      <p>You have been invited to join <strong>{$companyName}</strong> on OKR Flow.</p>
+      <p>You have been invited to join <strong>{$companyName}</strong> on Chill OKR.</p>
       <p>To activate your account and set your password, click the link below:</p>
       <p><a href=\"{$setupUrl}\" style=\"background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;\">Activate my account</a></p>
       <p>This link is valid for 7 days.</p>
