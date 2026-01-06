@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OKR Flow - Achieve Your Goals with Clarity</title>
+  <title>Chill OKR - Achieve Your Goals with Clarity</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
@@ -59,7 +59,7 @@
             <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
             </svg>
-            <span class="ml-2 text-2xl font-bold gradient-text">OKR Flow</span>
+            <span class="ml-2 text-2xl font-bold gradient-text">Chill OKR</span>
           </div>
           <div class="flex items-center space-x-4">
             <button @click="openLogin" class="text-gray-700 hover:text-purple-600 font-medium transition">
@@ -83,7 +83,7 @@
               <span class="gradient-text">Measurable Results</span>
             </h1>
             <p class="text-xl text-gray-600 mb-8">
-              OKR Flow helps teams align objectives, track progress, and achieve ambitious goals with clarity and focus.
+              Chill OKR helps teams align objectives, track progress, and achieve ambitious goals with clarity and focus.
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
               <button @click="openRegister" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition transform hover:-translate-y-1">
@@ -145,7 +145,7 @@
     <section class="py-20 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-          <h2 class="text-4xl font-bold text-gray-900 mb-4">Why Teams Choose OKR Flow</h2>
+          <h2 class="text-4xl font-bold text-gray-900 mb-4">Why Teams Choose Chill OKR</h2>
           <p class="text-xl text-gray-600">Everything you need to set, track, and achieve your objectives</p>
         </div>
         <div class="grid md:grid-cols-3 gap-8">
@@ -192,7 +192,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 class="text-4xl font-bold text-white mb-6">How OKR Flow Works</h2>
+            <h2 class="text-4xl font-bold text-white mb-6">How Chill OKR Works</h2>
             <div class="space-y-6">
               <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -277,7 +277,7 @@
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-4xl font-bold text-gray-900 mb-6">Ready to Transform Your Goals?</h2>
         <p class="text-xl text-gray-600 mb-8">
-          Join teams that are achieving more with OKR Flow. Get started in minutes.
+          Join teams that are achieving more with Chill OKR. Get started in minutes.
         </p>
         <button @click="openRegister" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-12 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition transform hover:-translate-y-1">
           Start Free Today
@@ -292,9 +292,9 @@
             <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
             </svg>
-            <span class="ml-2 text-xl font-bold text-white">OKR Flow</span>
+            <span class="ml-2 text-xl font-bold text-white">Chill OKR</span>
           </div>
-          <p class="text-sm">© 2025 OKR Flow. All rights reserved.</p>
+          <p class="text-sm">© 2025 Chill OKR. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -308,7 +308,7 @@
         </button>
 
         <h2 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-        <p class="text-gray-600 mb-6">Sign in to continue to OKR Flow</p>
+        <p class="text-gray-600 mb-6">Sign in to continue to Chill OKR</p>
 
         <div id="loginError" class="hidden bg-red-50 text-red-600 px-4 py-3 rounded-lg mb-4"></div>
         <div id="loginSuccess" class="hidden bg-green-50 text-green-600 px-4 py-3 rounded-lg mb-4"></div>

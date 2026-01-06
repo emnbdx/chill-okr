@@ -1,4 +1,4 @@
-# OKR Flow - Transform Your Goals Into Measurable Results
+# Chill OKR - Transform Your Goals Into Measurable Results
 
 ## Setup
 

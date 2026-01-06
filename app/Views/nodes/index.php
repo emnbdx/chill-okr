@@ -917,12 +917,14 @@
                       <input x-model="form.user_last_name" placeholder="Last name"
                         class="flex-1 text-base rounded-xl border dark:border-slate-600 dark:bg-slate-700 dark:text-white p-3" @keyup.enter="createUser()">
                     </div>
+                    <input x-model="form.user_email" type="email" placeholder="Email"
+                      class="w-full text-base rounded-xl border dark:border-slate-600 dark:bg-slate-700 dark:text-white p-3" @keyup.enter="createUser()">
                     <div class="flex gap-3">
                       <button @click="createUser()" type="button"
                         class="flex-1 px-4 py-3 text-base rounded-xl bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 font-medium transition-all duration-200 hover:shadow-lg hover:scale-105">
                         ➕ Add
                       </button>
-                      <button @click="showNewUserInput = false; form.user_first_name = ''; form.user_last_name = ''" type="button"
+                      <button @click="showNewUserInput = false; form.user_first_name = ''; form.user_last_name = ''; form.user_email = ''" type="button"
                         class="flex-1 px-4 py-3 text-base rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white border dark:border-slate-600 font-medium transition-all duration-200 hover:shadow-sm hover:scale-105">
                         ❌ Cancel
                       </button>
@@ -934,8 +936,13 @@
           </template>
 
           <div>
-            <label class="text-base font-semibold dark:text-slate-200">Progress (manual)</label>
-            <input type="number" min="0" max="100" x-model="form.progress" class="mt-2 w-full text-base rounded-xl border dark:border-slate-600 dark:bg-slate-700 dark:text-white p-3" placeholder="Optional">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-base font-semibold dark:text-slate-200">Progress (manual): <span x-text="form.progress || 0"></span>%</label>
+              <button @click="form.progress = null" type="button" class="px-3 py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white border dark:border-slate-600 font-medium transition-all duration-200 hover:shadow-sm">
+                🔄 Reset
+              </button>
+            </div>
+            <input type="range" min="0" max="100" x-model="form.progress" class="mt-2 w-full h-3 rounded-lg appearance-none cursor-pointer bg-slate-200 dark:bg-slate-700">
           </div>
         </div>
 
@@ -1161,9 +1168,9 @@
 
           <template x-if="!addCommentModal.parentCommentId">
             <div>
-              <label class="text-base font-semibold dark:text-slate-200">Progress Update (optional)</label>
-              <input type="number" min="0" max="100" x-model="addCommentModal.progress_update"
-                class="mt-2 w-full text-base rounded-xl border dark:border-slate-600 dark:bg-slate-700 dark:text-white p-3" placeholder="Leave empty to not update progress">
+              <label class="text-base font-semibold dark:text-slate-200">Progress Update (optional): <span x-text="addCommentModal.progress_update || 0"></span>%</label>
+              <input type="range" min="0" max="100" x-model="addCommentModal.progress_update"
+                class="mt-2 w-full h-3 rounded-lg appearance-none cursor-pointer bg-slate-200 dark:bg-slate-700">
             </div>
           </template>
         </div>
@@ -1245,8 +1252,13 @@
 
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="text-base font-semibold dark:text-slate-200">Progress (0-100)</label>
-                  <input type="number" min="0" max="100" x-model="keyResultModal.form.progress" class="mt-2 w-full text-base rounded-xl border dark:border-slate-600 dark:bg-slate-700 dark:text-white p-3" placeholder="Optional">
+                  <div class="flex items-center justify-between mb-2">
+                    <label class="text-base font-semibold dark:text-slate-200">Progress (0-100): <span x-text="keyResultModal.form.progress || 0"></span>%</label>
+                    <button @click="keyResultModal.form.progress = null" type="button" class="px-3 py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 dark:text-white border dark:border-slate-600 font-medium transition-all duration-200 hover:shadow-sm">
+                      🔄 Reset
+                    </button>
+                  </div>
+                  <input type="range" min="0" max="100" x-model="keyResultModal.form.progress" class="mt-2 w-full h-3 rounded-lg appearance-none cursor-pointer bg-slate-200 dark:bg-slate-700">
                 </div>
 
                 <div>
@@ -1457,6 +1469,7 @@
         user_id: '',
         user_first_name: '',
         user_last_name: '',
+        user_email: '',
         progress: ''
       },
       teams: [],
@@ -1986,6 +1999,7 @@
           user_id: '',
           user_first_name: '',
           user_last_name: '',
+          user_email: '',
           progress: ''
         }
         this.showNewTeamInput = false
@@ -2016,6 +2030,7 @@
           user_id: '',
           user_first_name: '',
           user_last_name: '',
+          user_email: '',
           progress: ''
         }
         this.showNewTeamInput = false
@@ -2115,7 +2130,9 @@
 
       async createUser() {
         if (!this.form.user_first_name || !this.form.user_first_name.trim() ||
-          !this.form.user_last_name || !this.form.user_last_name.trim()) {
+          !this.form.user_last_name || !this.form.user_last_name.trim() ||
+          !this.form.user_email || !this.form.user_email.trim()) {
+          showToast('First name, last name and email are required', 'warning')
           return
         }
         const r = await fetch('/api/users', {
@@ -2125,10 +2142,13 @@
           },
           body: JSON.stringify({
             first_name: this.form.user_first_name,
-            last_name: this.form.user_last_name
+            last_name: this.form.user_last_name,
+            email: this.form.user_email
           })
         })
         if (!r.ok) {
+          const err = await r.json().catch(() => ({}))
+          showToast(err.error || 'Error creating user', 'error')
           return
         }
         const j = await r.json()
@@ -2136,7 +2156,9 @@
         this.form.user_id = String(j.id)
         this.form.user_first_name = ''
         this.form.user_last_name = ''
+        this.form.user_email = ''
         this.showNewUserInput = false
+        showToast('User created successfully', 'success')
       },
 
       async inviteOwner() {
@@ -2198,8 +2220,8 @@
           if (createData.type === 'okr_team' && createData.owner_id) {
             createData.owner = this.getUserName(Number(createData.owner_id))
           }
-          if (createData.type === 'okr_perso') {
-            createData.owner = ''
+          if (createData.type === 'okr_perso' && createData.user_id) {
+            createData.owner = this.getUserEmail(Number(createData.user_id))
           }
 
           delete createData.owner_id
@@ -2233,8 +2255,8 @@
           if (updateData.type === 'okr_team' && updateData.owner_id) {
             updateData.owner = this.getUserName(Number(updateData.owner_id))
           }
-          if (updateData.type === 'okr_perso') {
-            updateData.owner = ''
+          if (updateData.type === 'okr_perso' && updateData.user_id) {
+            updateData.owner = this.getUserEmail(Number(updateData.user_id))
           }
 
           delete updateData.owner_id
@@ -2437,6 +2459,11 @@
       getUserName(userId) {
         const user = this.users.find(u => u.id == userId)
         return user ? `${user.first_name} ${user.last_name}` : `User #${userId}`
+      },
+
+      getUserEmail(userId) {
+        const user = this.users.find(u => u.id == userId)
+        return user ? user.email : ''
       },
 
       async openKeyResultsModal(nodeId) {

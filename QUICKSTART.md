@@ -55,7 +55,7 @@ php -S localhost:8000 -t public
 
 Ouvrez votre navigateur : http://localhost:8000
 
-Vous verrez la landing page d'OKR Flow avec des modales d'authentification.
+Vous verrez la landing page de Chill OKR avec des modales d'authentification.
 
 ### 2. Créer un compte
 
