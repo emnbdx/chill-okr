@@ -768,13 +768,13 @@
 
   <template x-if="modal.open">
     <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-[100]">
-      <div class="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-600 shadow-2xl p-8">
-        <div class="flex items-center justify-between mb-6">
+      <div class="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-600 shadow-2xl p-8 max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between mb-6 flex-shrink-0">
           <h2 class="text-2xl font-bold dark:text-white" x-text="modal.mode==='edit' ? 'Edit' : (modal.mode==='add' ? 'Add' : 'Create')"></h2>
           <button @click="closeModal()" class="text-2xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">✕</button>
         </div>
 
-        <div class="space-y-5">
+        <div class="space-y-5 flex-1 overflow-y-auto">
           <template x-if="modal.mode==='add'">
             <div>
               <label class="text-base font-semibold dark:text-slate-200 dark:text-slate-200">Type</label>
@@ -946,7 +946,7 @@
           </div>
         </div>
 
-        <div class="mt-6 flex gap-3">
+        <div class="mt-6 flex gap-3 flex-shrink-0">
           <button @click="submit()"
             class="flex-1 py-3 text-lg font-semibold rounded-xl bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 transition-all duration-200 hover:shadow-lg hover:scale-105">
             💾 Save
@@ -1033,13 +1033,13 @@
 
   <template x-if="profileModal.open">
     <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-[100]">
-      <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-600 shadow-2xl p-8">
-        <div class="flex items-center justify-between mb-6">
+      <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-600 shadow-2xl p-8 max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between mb-6 flex-shrink-0">
           <h2 class="text-2xl font-bold dark:text-white">Edit Profile</h2>
           <button @click="closeProfileModal()" class="text-2xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">✕</button>
         </div>
 
-        <div class="space-y-5">
+        <div class="space-y-5 flex-1 overflow-y-auto">
           <div>
             <label class="text-base font-semibold dark:text-slate-200">First Name</label>
             <input x-model="profileModal.first_name"
@@ -1057,7 +1057,7 @@
           </div>
         </div>
 
-        <div class="mt-6 flex gap-3">
+        <div class="mt-6 flex gap-3 flex-shrink-0">
           <button @click="updateProfile()"
             class="flex-1 py-3 text-lg font-semibold rounded-xl bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 transition-all duration-200 hover:shadow-lg hover:scale-105">
             💾 Save
@@ -1133,13 +1133,13 @@
 
   <template x-if="addCommentModal.open">
     <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-[200]">
-      <div class="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-600 shadow-2xl p-8">
-        <div class="flex items-center justify-between mb-6">
+      <div class="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-600 shadow-2xl p-8 max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between mb-6 flex-shrink-0">
           <h2 class="text-2xl font-bold dark:text-white" x-text="addCommentModal.parentCommentId ? 'Add Reply' : 'Add Comment'"></h2>
           <button @click="closeAddCommentModal()" class="text-2xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">✕</button>
         </div>
 
-        <div class="space-y-5">
+        <div class="space-y-5 flex-1 overflow-y-auto">
           <div>
             <label class="text-base font-semibold dark:text-slate-200">Content</label>
             <div class="mt-2 border dark:border-slate-600 rounded-xl overflow-hidden">
@@ -1175,7 +1175,7 @@
           </template>
         </div>
 
-        <div class="mt-6 flex gap-3">
+        <div class="mt-6 flex gap-3 flex-shrink-0">
           <button @click="submitComment()"
             class="flex-1 py-3 text-lg font-semibold rounded-xl bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 transition-all duration-200 hover:shadow-lg hover:scale-105">
             📮 Post
