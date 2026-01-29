@@ -7,14 +7,30 @@
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1" x-text="companyInfo.name"></p>
     </div>
     <div class="flex gap-3 items-center">
-      <button @click="openAddModal()"
-        class="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 font-semibold text-xl transition-all duration-200 hover:shadow-lg hover:scale-105">
-        ➕ Add
-      </button>
-      <button @click="toggleAll()"
-        class="px-5 py-4 text-base rounded-xl bg-slate-200/70 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-md">
-        <span x-text="allExpanded ? '🔽' : '▶️'"></span>
-      </button>
+      <div class="flex rounded-xl overflow-hidden border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 p-1">
+        <button @click="viewMode = 'edit'"
+          :class="viewMode === 'edit' ? 'bg-white dark:bg-slate-600 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+          class="px-4 py-3 text-base font-medium transition-all duration-200 rounded-lg">
+          ✏️ Édition
+        </button>
+        <button @click="viewMode = 'mindmap'"
+          :class="viewMode === 'mindmap' ? 'bg-white dark:bg-slate-600 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+          class="px-4 py-3 text-base font-medium transition-all duration-200 rounded-lg">
+          😎 Mindmap
+        </button>
+      </div>
+      <template x-if="viewMode === 'edit'">
+        <div class="flex gap-3 items-center">
+          <button @click="openAddModal()"
+            class="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 font-semibold text-xl transition-all duration-200 hover:shadow-lg hover:scale-105">
+            ➕ Add
+          </button>
+          <button @click="toggleAll()"
+            class="px-5 py-4 text-base rounded-xl bg-slate-200/70 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-md">
+            <span x-text="allExpanded ? '🔽' : '▶️'"></span>
+          </button>
+        </div>
+      </template>
       <button @click="openCompanyModal()"
         class="px-5 py-4 text-base rounded-xl bg-slate-200/70 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-md">
         🏢
@@ -45,723 +61,772 @@
     </div>
   </div>
 
-  <template x-if="loading">
-    <div class="rounded-xl border dark:border-slate-600 bg-white dark:bg-slate-800 p-8 text-lg text-slate-600 dark:text-slate-300">Loading…</div>
-  </template>
+  <div x-show="viewMode === 'edit'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    <template x-if="loading">
+      <div class="rounded-xl border dark:border-slate-600 bg-white dark:bg-slate-800 p-8 text-lg text-slate-600 dark:text-slate-300">Loading…</div>
+    </template>
 
-  <template x-if="!loading && roots().length===0">
-    <div class="rounded-xl border dark:border-slate-600 bg-white dark:bg-slate-800 p-8 text-lg text-slate-600 dark:text-slate-300">No data.</div>
-  </template>
+    <template x-if="!loading && roots().length===0">
+      <div class="rounded-xl border dark:border-slate-600 bg-white dark:bg-slate-800 p-8 text-lg text-slate-600 dark:text-slate-300">No data.</div>
+    </template>
 
-  <div class="space-y-4">
-    <template x-for="n in roots()" :key="n.id">
-      <div>
-        <div class="node-card" :style="indentStyle(n)">
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0 flex-1">
-              <div :class="n.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700' : ''" @click="n.type !== 'okr_perso' ? toggle(n.id) : null" class="flex items-center gap-4 -mx-3 px-3 py-2 rounded transition-colors group">
-                <template x-if="n.type !== 'okr_perso'">
-                  <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(n.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </template>
-                <span class="badge" :class="badgeClass(n.type)" x-text="formatTypeLabel(n.type)"></span>
-                <h3 class="text-lg font-semibold truncate dark:text-white" x-text="n.title"></h3>
-                <template x-if="n.type==='okr_team' && n.team_id">
-                  <span class="text-sm px-3 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(n.team_id)"></span>
-                </template>
-                <template x-if="n.type==='okr_perso' && n.user_id">
-                  <span class="text-sm px-3 py-1 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(n.user_id)"></span>
-                </template>
-              </div>
-
-              <template x-if="n.type==='okr_team' && n.owner">
-                <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Owner: <span x-text="n.owner"></span></p>
-              </template>
-
-              <p class="text-base text-slate-600 dark:text-slate-300 mt-2 whitespace-pre-line" x-text="n.description"></p>
-
-              <div class="mt-4 space-y-3">
-                <template x-if="computedProgress(n.id)!==null">
-                  <div>
-                    <div class="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-                      Progress (computed): <span x-text="Math.round(computedProgress(n.id))"></span>%
-                    </div>
-                    <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div class="h-3 bg-blue-500" :style="`width:${computedProgress(n.id)}%`"></div>
-                    </div>
-                  </div>
-                </template>
-                <div>
-                  <div class="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-                    Progress (manual): <span x-text="n.progress !== null && n.progress !== undefined ? n.progress : 0"></span>%
-                  </div>
-                  <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                    <div class="h-3 bg-slate-900" :style="`width:${n.progress !== null && n.progress !== undefined ? n.progress : 0}%`"></div>
-                  </div>
+    <div class="space-y-4" x-show="!loading && roots().length > 0">
+      <template x-for="n in roots()" :key="n.id">
+        <div>
+          <div class="node-card" :style="indentStyle(n)">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div :class="n.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700' : ''" @click="n.type !== 'okr_perso' ? toggle(n.id) : null" class="flex items-center gap-4 -mx-3 px-3 py-2 rounded transition-colors group">
+                  <template x-if="n.type !== 'okr_perso'">
+                    <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(n.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </template>
+                  <span class="badge" :class="badgeClass(n.type)" x-text="formatTypeLabel(n.type)"></span>
+                  <h3 class="text-lg font-semibold truncate dark:text-white" x-text="n.title"></h3>
+                  <template x-if="n.type==='okr_team' && n.team_id">
+                    <span class="text-sm px-3 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(n.team_id)"></span>
+                  </template>
+                  <template x-if="n.type==='okr_perso' && n.user_id">
+                    <span class="text-sm px-3 py-1 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(n.user_id)"></span>
+                  </template>
                 </div>
-              </div>
 
-              <template x-if="(n.type === 'okr_team' || n.type === 'okr_perso') && getKeyResults(n.id).length > 0">
+                <template x-if="n.type==='okr_team' && n.owner">
+                  <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Owner: <span x-text="n.owner"></span></p>
+                </template>
+
+                <p class="text-base text-slate-600 dark:text-slate-300 mt-2 whitespace-pre-line" x-text="n.description"></p>
+
                 <div class="mt-4 space-y-3">
-                  <div class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Key Results:</div>
-                  <template x-for="kr in getKeyResults(n.id)" :key="kr.id">
-                    <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
-                      <div class="flex items-start justify-between gap-3">
-                        <div class="flex-1 min-w-0">
-                          <div class="flex items-center gap-3">
-                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
-                            <span class="text-sm text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
-                          </div>
-                          <template x-if="kr.description">
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-2" x-text="kr.description"></p>
-                          </template>
-                          <template x-if="kr.progress !== null && kr.progress !== undefined">
-                            <div class="mt-2">
-                              <div class="text-sm text-slate-600 dark:text-slate-400 mb-1 font-medium">Progress: <span x-text="kr.progress"></span>%</div>
-                              <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div class="h-2.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
-                              </div>
-                            </div>
-                          </template>
-                        </div>
-                        <div class="flex gap-2">
-                          <button @click="openEditKeyResult(kr, n.id)"
-                            class="text-sm px-3 py-1.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                            ✏️ Edit
-                          </button>
-                          <button @click="deleteKeyResult(kr.id, n.id)"
-                            class="text-sm px-3 py-1.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                            🗑️ Delete
-                          </button>
-                        </div>
+                  <template x-if="computedProgress(n.id)!==null">
+                    <div>
+                      <div class="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
+                        Progress (computed): <span x-text="Math.round(computedProgress(n.id))"></span>%
+                      </div>
+                      <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div class="h-3 bg-blue-500" :style="`width:${computedProgress(n.id)}%`"></div>
                       </div>
                     </div>
                   </template>
-                </div>
-              </template>
-
-              <div class="mt-4 flex flex-wrap gap-3">
-                <template x-for="t in allowedChildTypes(n.type)" :key="t">
-                  <button @click="openCreate(n.id,t)"
-                    class="text-sm px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-sm hover:scale-105">
-                    ➕ <span x-text="labelType(t)"></span>
-                  </button>
-                </template>
-                <template x-if="n.type === 'okr_team' || n.type === 'okr_perso'">
-                  <button @click="openKeyResultsModal(n.id)"
-                    class="text-sm px-4 py-2 rounded-lg bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 font-medium transition-all duration-200 hover:shadow-sm hover:scale-105">
-                    ➕ Key Results
-                  </button>
-                </template>
-              </div>
-            </div>
-
-            <div class="flex shrink-0 gap-3">
-              <button @click="openComments(n.id)"
-                class="text-base px-4 py-2 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 font-medium transition-all duration-200 hover:shadow-md hover:scale-105">
-                💬 Comment
-              </button>
-              <button @click="openEdit(n)"
-                class="text-base px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white font-medium transition-all duration-200 hover:shadow-md hover:scale-105">
-                ✏️ Edit
-              </button>
-              <button @click="remove(n.id)"
-                class="text-base px-4 py-2 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 font-medium transition-all duration-200 hover:shadow-md hover:scale-105">
-                🗑️ Delete
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <template x-if="n.type !== 'okr_perso' && isOpen(n.id)">
-          <div class="space-y-2">
-            <template x-for="c in childrenOf(n.id)" :key="c.id">
-              <div>
-                <div class="node-card" :style="indentStyle(c)">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0 flex-1">
-                      <div :class="c.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700' : ''" @click="c.type !== 'okr_perso' ? toggle(c.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
-                        <template x-if="c.type !== 'okr_perso'">
-                          <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(c.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                          </svg>
-                        </template>
-                        <span class="badge" :class="badgeClass(c.type)" x-text="formatTypeLabel(c.type)"></span>
-                        <h3 class="font-semibold truncate dark:text-white" x-text="c.title"></h3>
-                        <template x-if="c.type==='okr_team' && c.team_id">
-                          <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(c.team_id)"></span>
-                        </template>
-                        <template x-if="c.type==='okr_perso' && c.user_id">
-                          <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(c.user_id)"></span>
-                        </template>
-                      </div>
-                      <template x-if="c.type==='okr_team' && c.owner">
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="c.owner"></span></p>
-                      </template>
-                      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="c.description"></p>
-
-                      <div class="mt-2 space-y-2">
-                        <template x-if="computedProgress(c.id)!==null">
-                          <div>
-                            <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                              Progress (computed): <span x-text="Math.round(computedProgress(c.id))"></span>%
-                            </div>
-                            <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                              <div class="h-2 bg-blue-500" :style="`width:${computedProgress(c.id)}%`"></div>
-                            </div>
-                          </div>
-                        </template>
-                        <div>
-                          <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                            Progress (manual): <span x-text="c.progress !== null && c.progress !== undefined ? c.progress : 0"></span>%
-                          </div>
-                          <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <div class="h-2 bg-slate-900" :style="`width:${c.progress !== null && c.progress !== undefined ? c.progress : 0}%`"></div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <template x-if="(c.type === 'okr_team' || c.type === 'okr_perso') && getKeyResults(c.id).length > 0">
-                        <div class="mt-3 space-y-2">
-                          <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
-                          <template x-for="kr in getKeyResults(c.id)" :key="kr.id">
-                            <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
-                              <div class="flex items-start justify-between gap-2">
-                                <div class="flex-1 min-w-0">
-                                  <div class="flex items-center gap-2">
-                                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
-                                    <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
-                                  </div>
-                                  <template x-if="kr.description">
-                                    <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
-                                  </template>
-                                  <template x-if="kr.progress !== null && kr.progress !== undefined">
-                                    <div class="mt-1">
-                                      <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
-                                      <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
-                                      </div>
-                                    </div>
-                                  </template>
-                                </div>
-                                <div class="flex gap-1">
-                                  <button @click="openEditKeyResult(kr, c.id)"
-                                    class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                    ✏️ Edit
-                                  </button>
-                                  <button @click="deleteKeyResult(kr.id, c.id)"
-                                    class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                    🗑️ Delete
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </template>
-                        </div>
-                      </template>
-
-                      <div class="mt-2 flex flex-wrap gap-2">
-                        <template x-for="t in allowedChildTypes(c.type)" :key="t">
-                          <button @click="openCreate(c.id,t)"
-                            class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                            ➕ <span x-text="labelType(t)"></span>
-                          </button>
-                        </template>
-                        <template x-if="c.type === 'okr_team' || c.type === 'okr_perso'">
-                          <button @click="openKeyResultsModal(c.id)"
-                            class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                            ➕ Key Results
-                          </button>
-                        </template>
-                      </div>
+                  <div>
+                    <div class="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
+                      Progress (manual): <span x-text="n.progress !== null && n.progress !== undefined ? n.progress : 0"></span>%
                     </div>
-
-                    <div class="flex shrink-0 gap-2">
-                      <button @click="openComments(c.id)"
-                        class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">
-                        💬 Comment
-                      </button>
-                      <button @click="openEdit(c)"
-                        class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">
-                        ✏️ Edit
-                      </button>
-                      <button @click="remove(c.id)"
-                        class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">
-                        🗑️ Delete
-                      </button>
+                    <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div class="h-3 bg-slate-900" :style="`width:${n.progress !== null && n.progress !== undefined ? n.progress : 0}%`"></div>
                     </div>
                   </div>
                 </div>
 
-                <template x-if="c.type !== 'okr_perso' && isOpen(c.id)">
-                  <div class="space-y-2">
-                    <template x-for="child in childrenOf(c.id)" :key="child.id">
-                      <div>
-                        <div class="node-card" :style="indentStyle(child)">
-                          <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0 flex-1">
-                              <div :class="child.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700' : ''" @click="child.type !== 'okr_perso' ? toggle(child.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
-                                <template x-if="child.type !== 'okr_perso'">
-                                  <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(child.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                  </svg>
-                                </template>
-                                <span class="badge" :class="badgeClass(child.type)" x-text="formatTypeLabel(child.type)"></span>
-                                <h3 class="font-semibold truncate dark:text-white" x-text="child.title"></h3>
-                                <template x-if="child.type==='okr_team' && child.team_id">
-                                  <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(child.team_id)"></span>
-                                </template>
-                                <template x-if="child.type==='okr_perso' && child.user_id">
-                                  <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(child.user_id)"></span>
-                                </template>
+                <template x-if="(n.type === 'okr_team' || n.type === 'okr_perso') && getKeyResults(n.id).length > 0">
+                  <div class="mt-4 space-y-3">
+                    <div class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Key Results:</div>
+                    <template x-for="kr in getKeyResults(n.id)" :key="kr.id">
+                      <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                        <div class="flex items-start justify-between gap-3">
+                          <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-3">
+                              <span class="text-sm font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
+                              <span class="text-sm text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
+                            </div>
+                            <template x-if="kr.description">
+                              <p class="text-sm text-slate-600 dark:text-slate-400 mt-2" x-text="kr.description"></p>
+                            </template>
+                            <template x-if="kr.progress !== null && kr.progress !== undefined">
+                              <div class="mt-2">
+                                <div class="text-sm text-slate-600 dark:text-slate-400 mb-1 font-medium">Progress: <span x-text="kr.progress"></span>%</div>
+                                <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                  <div class="h-2.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
+                                </div>
                               </div>
-                              <template x-if="child.type==='okr_team' && child.owner">
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="child.owner"></span></p>
-                              </template>
-                              <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="child.description"></p>
-                              <template x-if="child.type!=='company'">
-                                <div class="mt-2 space-y-2">
-                                  <template x-if="computedProgress(child.id)!==null">
-                                    <div>
-                                      <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                        Progress (computed): <span x-text="Math.round(computedProgress(child.id))"></span>%
-                                      </div>
-                                      <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div class="h-2 bg-blue-500" :style="`width:${computedProgress(child.id)}%`"></div>
-                                      </div>
-                                    </div>
-                                  </template>
-                                  <div>
-                                    <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                      Progress (manual): <span x-text="child.progress !== null && child.progress !== undefined ? child.progress : 0"></span>%
-                                    </div>
-                                    <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                      <div class="h-2 bg-slate-900" :style="`width:${child.progress !== null && child.progress !== undefined ? child.progress : 0}%`"></div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </template>
+                            </template>
+                          </div>
+                          <div class="flex gap-2">
+                            <button @click="openEditKeyResult(kr, n.id)"
+                              class="text-sm px-3 py-1.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                              ✏️ Edit
+                            </button>
+                            <button @click="deleteKeyResult(kr.id, n.id)"
+                              class="text-sm px-3 py-1.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                              🗑️ Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </template>
 
-                              <template x-if="(child.type === 'okr_team' || child.type === 'okr_perso') && getKeyResults(child.id).length > 0">
-                                <div class="mt-3 space-y-2">
-                                  <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
-                                  <template x-for="kr in getKeyResults(child.id)" :key="kr.id">
-                                    <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
-                                      <div class="flex items-start justify-between gap-2">
-                                        <div class="flex-1 min-w-0">
-                                          <div class="flex items-center gap-2">
-                                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
-                                            <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
-                                          </div>
-                                          <template x-if="kr.description">
-                                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
-                                          </template>
-                                          <template x-if="kr.progress !== null && kr.progress !== undefined">
-                                            <div class="mt-1">
-                                              <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
-                                              <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
-                                              </div>
-                                            </div>
-                                          </template>
-                                        </div>
-                                        <div class="flex gap-1">
-                                          <button @click="openEditKeyResult(kr, child.id)"
-                                            class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                            ✏️ Edit
-                                          </button>
-                                          <button @click="deleteKeyResult(kr.id, child.id)"
-                                            class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                            🗑️ Delete
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </template>
-                                </div>
-                              </template>
-                              <div class="mt-2 flex flex-wrap gap-2">
-                                <template x-for="t in allowedChildTypes(child.type)" :key="t">
-                                  <button @click="openCreate(child.id, t)"
-                                    class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                    ➕ <span x-text="labelType(t)"></span>
-                                  </button>
-                                </template>
-                                <template x-if="child.type === 'okr_team' || child.type === 'okr_perso'">
-                                  <button @click="openKeyResultsModal(child.id)"
-                                    class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                    ➕ Key Results
-                                  </button>
-                                </template>
+                <div class="mt-4 flex flex-wrap gap-3">
+                  <template x-for="t in allowedChildTypes(n.type)" :key="t">
+                    <button @click="openCreate(n.id,t)"
+                      class="text-sm px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white font-medium transition-all duration-200 hover:shadow-sm hover:scale-105">
+                      ➕ <span x-text="labelType(t)"></span>
+                    </button>
+                  </template>
+                  <template x-if="n.type === 'okr_team' || n.type === 'okr_perso'">
+                    <button @click="openKeyResultsModal(n.id)"
+                      class="text-sm px-4 py-2 rounded-lg bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 font-medium transition-all duration-200 hover:shadow-sm hover:scale-105">
+                      ➕ Key Results
+                    </button>
+                  </template>
+                </div>
+              </div>
+
+              <div class="flex shrink-0 gap-3">
+                <button @click="openComments(n.id)"
+                  class="text-base px-4 py-2 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 font-medium transition-all duration-200 hover:shadow-md hover:scale-105">
+                  💬 Comment
+                </button>
+                <button @click="openEdit(n)"
+                  class="text-base px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white font-medium transition-all duration-200 hover:shadow-md hover:scale-105">
+                  ✏️ Edit
+                </button>
+                <button @click="remove(n.id)"
+                  class="text-base px-4 py-2 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 font-medium transition-all duration-200 hover:shadow-md hover:scale-105">
+                  🗑️ Delete
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <template x-if="n.type !== 'okr_perso' && isOpen(n.id)">
+            <div class="space-y-2">
+              <template x-for="c in childrenOf(n.id)" :key="c.id">
+                <div>
+                  <div class="node-card" :style="indentStyle(c)">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0 flex-1">
+                        <div :class="c.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700' : ''" @click="c.type !== 'okr_perso' ? toggle(c.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
+                          <template x-if="c.type !== 'okr_perso'">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(c.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                          </template>
+                          <span class="badge" :class="badgeClass(c.type)" x-text="formatTypeLabel(c.type)"></span>
+                          <h3 class="font-semibold truncate dark:text-white" x-text="c.title"></h3>
+                          <template x-if="c.type==='okr_team' && c.team_id">
+                            <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(c.team_id)"></span>
+                          </template>
+                          <template x-if="c.type==='okr_perso' && c.user_id">
+                            <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(c.user_id)"></span>
+                          </template>
+                        </div>
+                        <template x-if="c.type==='okr_team' && c.owner">
+                          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="c.owner"></span></p>
+                        </template>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="c.description"></p>
+
+                        <div class="mt-2 space-y-2">
+                          <template x-if="computedProgress(c.id)!==null">
+                            <div>
+                              <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                Progress (computed): <span x-text="Math.round(computedProgress(c.id))"></span>%
+                              </div>
+                              <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-2 bg-blue-500" :style="`width:${computedProgress(c.id)}%`"></div>
                               </div>
                             </div>
-                            <div class="flex shrink-0 gap-2">
-                              <button @click="openComments(child.id)"
-                                class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">💬 Comment</button>
-                              <button @click="openEdit(child)"
-                                class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">✏️ Edit</button>
-                              <button @click="remove(child.id)"
-                                class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">🗑️ Delete</button>
+                          </template>
+                          <div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                              Progress (manual): <span x-text="c.progress !== null && c.progress !== undefined ? c.progress : 0"></span>%
+                            </div>
+                            <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                              <div class="h-2 bg-slate-900" :style="`width:${c.progress !== null && c.progress !== undefined ? c.progress : 0}%`"></div>
                             </div>
                           </div>
                         </div>
-                        <template x-if="child.type !== 'okr_perso' && isOpen(child.id)">
-                          <div class="space-y-2">
-                            <template x-for="grandchild in childrenOf(child.id)" :key="grandchild.id">
-                              <div>
-                                <div class="node-card" :style="indentStyle(grandchild)">
-                                  <div class="flex items-start justify-between gap-3">
-                                    <div class="min-w-0 flex-1">
-                                      <div :class="grandchild.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700' : ''" @click="grandchild.type !== 'okr_perso' ? toggle(grandchild.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
-                                        <template x-if="grandchild.type !== 'okr_perso'">
-                                          <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(grandchild.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                          </svg>
-                                        </template>
-                                        <span class="badge" :class="badgeClass(grandchild.type)" x-text="formatTypeLabel(grandchild.type)"></span>
-                                        <h3 class="font-semibold truncate dark:text-white" x-text="grandchild.title"></h3>
-                                        <template x-if="grandchild.type==='okr_team' && grandchild.team_id">
-                                          <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(grandchild.team_id)"></span>
-                                        </template>
-                                        <template x-if="grandchild.type==='okr_perso' && grandchild.user_id">
-                                          <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(grandchild.user_id)"></span>
-                                        </template>
-                                      </div>
-                                      <template x-if="grandchild.type==='okr_team' && grandchild.owner">
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="grandchild.owner"></span></p>
-                                      </template>
-                                      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="grandchild.description"></p>
-                                      <template x-if="grandchild.type!=='company'">
-                                        <div class="mt-2 space-y-2">
-                                          <template x-if="computedProgress(grandchild.id)!==null">
-                                            <div>
-                                              <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                                Progress (computed): <span x-text="Math.round(computedProgress(grandchild.id))"></span>%
-                                              </div>
-                                              <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                <div class="h-2 bg-blue-500" :style="`width:${computedProgress(grandchild.id)}%`"></div>
-                                              </div>
-                                            </div>
-                                          </template>
-                                          <div>
-                                            <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                              Progress (manual): <span x-text="grandchild.progress !== null && grandchild.progress !== undefined ? grandchild.progress : 0"></span>%
-                                            </div>
-                                            <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                              <div class="h-2 bg-slate-900" :style="`width:${grandchild.progress !== null && grandchild.progress !== undefined ? grandchild.progress : 0}%`"></div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </template>
 
-                                      <template x-if="(grandchild.type === 'okr_team' || grandchild.type === 'okr_perso') && getKeyResults(grandchild.id).length > 0">
-                                        <div class="mt-3 space-y-2">
-                                          <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
-                                          <template x-for="kr in getKeyResults(grandchild.id)" :key="kr.id">
-                                            <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
-                                              <div class="flex items-start justify-between gap-2">
-                                                <div class="flex-1 min-w-0">
-                                                  <div class="flex items-center gap-2">
-                                                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
-                                                    <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
-                                                  </div>
-                                                  <template x-if="kr.description">
-                                                    <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
-                                                  </template>
-                                                  <template x-if="kr.progress !== null && kr.progress !== undefined">
-                                                    <div class="mt-1">
-                                                      <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
-                                                      <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                        <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
-                                                      </div>
-                                                    </div>
-                                                  </template>
-                                                </div>
-                                                <div class="flex gap-1">
-                                                  <button @click="openEditKeyResult(kr, grandchild.id)"
-                                                    class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                    ✏️ Edit
-                                                  </button>
-                                                  <button @click="deleteKeyResult(kr.id, grandchild.id)"
-                                                    class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                    🗑️ Delete
-                                                  </button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </template>
+                        <template x-if="(c.type === 'okr_team' || c.type === 'okr_perso') && getKeyResults(c.id).length > 0">
+                          <div class="mt-3 space-y-2">
+                            <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
+                            <template x-for="kr in getKeyResults(c.id)" :key="kr.id">
+                              <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
+                                <div class="flex items-start justify-between gap-2">
+                                  <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2">
+                                      <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
+                                      <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
+                                    </div>
+                                    <template x-if="kr.description">
+                                      <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
+                                    </template>
+                                    <template x-if="kr.progress !== null && kr.progress !== undefined">
+                                      <div class="mt-1">
+                                        <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
+                                        <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                          <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
                                         </div>
-                                      </template>
-                                      <div class="mt-2 flex flex-wrap gap-2">
-                                        <template x-for="t in allowedChildTypes(grandchild.type)" :key="t">
-                                          <button @click="openCreate(grandchild.id, t)"
-                                            class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                            ➕ <span x-text="labelType(t)"></span>
-                                          </button>
-                                        </template>
-                                        <template x-if="grandchild.type === 'okr_team' || grandchild.type === 'okr_perso'">
-                                          <button @click="openKeyResultsModal(grandchild.id)"
-                                            class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                            ➕ Key Results
-                                          </button>
-                                        </template>
                                       </div>
-                                    </div>
-                                    <div class="flex shrink-0 gap-2">
-                                      <button @click="openComments(grandchild.id)"
-                                        class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">💬 Comment</button>
-                                      <button @click="openEdit(grandchild)"
-                                        class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">✏️ Edit</button>
-                                      <button @click="remove(grandchild.id)"
-                                        class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">🗑️ Delete</button>
-                                    </div>
+                                    </template>
+                                  </div>
+                                  <div class="flex gap-1">
+                                    <button @click="openEditKeyResult(kr, c.id)"
+                                      class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                      ✏️ Edit
+                                    </button>
+                                    <button @click="deleteKeyResult(kr.id, c.id)"
+                                      class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                      🗑️ Delete
+                                    </button>
                                   </div>
                                 </div>
-                                <template x-if="grandchild.type !== 'okr_perso' && isOpen(grandchild.id)">
-                                  <div class="space-y-2">
-                                    <template x-for="greatgrandchild in childrenOf(grandchild.id)" :key="greatgrandchild.id">
-                                      <div>
-                                        <div class="node-card" :style="indentStyle(greatgrandchild)">
-                                          <div class="flex items-start justify-between gap-3">
-                                            <div class="min-w-0 flex-1">
-                                              <div :class="greatgrandchild.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50' : ''" @click="greatgrandchild.type !== 'okr_perso' ? toggle(greatgrandchild.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
-                                                <template x-if="greatgrandchild.type !== 'okr_perso'">
-                                                  <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(greatgrandchild.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                                  </svg>
-                                                </template>
-                                                <span class="badge" :class="badgeClass(greatgrandchild.type)" x-text="formatTypeLabel(greatgrandchild.type)"></span>
-                                                <h3 class="font-semibold truncate dark:text-white" x-text="greatgrandchild.title"></h3>
-                                                <template x-if="greatgrandchild.type==='okr_team' && greatgrandchild.team_id">
-                                                  <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(greatgrandchild.team_id)"></span>
-                                                </template>
-                                                <template x-if="greatgrandchild.type==='okr_perso' && greatgrandchild.user_id">
-                                                  <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(greatgrandchild.user_id)"></span>
-                                                </template>
-                                              </div>
-                                              <template x-if="greatgrandchild.type==='okr_team' && greatgrandchild.owner">
-                                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="greatgrandchild.owner"></span></p>
-                                              </template>
-                                              <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="greatgrandchild.description"></p>
-                                              <template x-if="greatgrandchild.type!=='company'">
-                                                <div class="mt-2 space-y-2">
-                                                  <template x-if="computedProgress(greatgrandchild.id)!==null">
-                                                    <div>
-                                                      <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                                        Progress (computed): <span x-text="Math.round(computedProgress(greatgrandchild.id))"></span>%
-                                                      </div>
-                                                      <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                        <div class="h-2 bg-blue-500" :style="`width:${computedProgress(greatgrandchild.id)}%`"></div>
-                                                      </div>
-                                                    </div>
-                                                  </template>
-                                                  <div>
-                                                    <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                                      Progress (manual): <span x-text="greatgrandchild.progress !== null && greatgrandchild.progress !== undefined ? greatgrandchild.progress : 0"></span>%
-                                                    </div>
-                                                    <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                      <div class="h-2 bg-slate-900" :style="`width:${greatgrandchild.progress !== null && greatgrandchild.progress !== undefined ? greatgrandchild.progress : 0}%`"></div>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              </template>
+                              </div>
+                            </template>
+                          </div>
+                        </template>
 
-                                              <template x-if="(greatgrandchild.type === 'okr_team' || greatgrandchild.type === 'okr_perso') && getKeyResults(greatgrandchild.id).length > 0">
-                                                <div class="mt-3 space-y-2">
-                                                  <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
-                                                  <template x-for="kr in getKeyResults(greatgrandchild.id)" :key="kr.id">
-                                                    <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
-                                                      <div class="flex items-start justify-between gap-2">
-                                                        <div class="flex-1 min-w-0">
-                                                          <div class="flex items-center gap-2">
-                                                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
-                                                            <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
-                                                          </div>
-                                                          <template x-if="kr.description">
-                                                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
-                                                          </template>
-                                                          <template x-if="kr.progress !== null && kr.progress !== undefined">
-                                                            <div class="mt-1">
-                                                              <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
-                                                              <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                                <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
-                                                              </div>
-                                                            </div>
-                                                          </template>
-                                                        </div>
-                                                        <div class="flex gap-1">
-                                                          <button @click="openEditKeyResult(kr, greatgrandchild.id)"
-                                                            class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                            ✏️ Edit
-                                                          </button>
-                                                          <button @click="deleteKeyResult(kr.id, greatgrandchild.id)"
-                                                            class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                            🗑️ Delete
-                                                          </button>
-                                                        </div>
-                                                      </div>
-                                                    </div>
-                                                  </template>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                          <template x-for="t in allowedChildTypes(c.type)" :key="t">
+                            <button @click="openCreate(c.id,t)"
+                              class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                              ➕ <span x-text="labelType(t)"></span>
+                            </button>
+                          </template>
+                          <template x-if="c.type === 'okr_team' || c.type === 'okr_perso'">
+                            <button @click="openKeyResultsModal(c.id)"
+                              class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                              ➕ Key Results
+                            </button>
+                          </template>
+                        </div>
+                      </div>
+
+                      <div class="flex shrink-0 gap-2">
+                        <button @click="openComments(c.id)"
+                          class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">
+                          💬 Comment
+                        </button>
+                        <button @click="openEdit(c)"
+                          class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">
+                          ✏️ Edit
+                        </button>
+                        <button @click="remove(c.id)"
+                          class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <template x-if="c.type !== 'okr_perso' && isOpen(c.id)">
+                    <div class="space-y-2">
+                      <template x-for="child in childrenOf(c.id)" :key="child.id">
+                        <div>
+                          <div class="node-card" :style="indentStyle(child)">
+                            <div class="flex items-start justify-between gap-3">
+                              <div class="min-w-0 flex-1">
+                                <div :class="child.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700' : ''" @click="child.type !== 'okr_perso' ? toggle(child.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
+                                  <template x-if="child.type !== 'okr_perso'">
+                                    <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(child.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                  </template>
+                                  <span class="badge" :class="badgeClass(child.type)" x-text="formatTypeLabel(child.type)"></span>
+                                  <h3 class="font-semibold truncate dark:text-white" x-text="child.title"></h3>
+                                  <template x-if="child.type==='okr_team' && child.team_id">
+                                    <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(child.team_id)"></span>
+                                  </template>
+                                  <template x-if="child.type==='okr_perso' && child.user_id">
+                                    <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(child.user_id)"></span>
+                                  </template>
+                                </div>
+                                <template x-if="child.type==='okr_team' && child.owner">
+                                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="child.owner"></span></p>
+                                </template>
+                                <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="child.description"></p>
+                                <template x-if="child.type!=='company'">
+                                  <div class="mt-2 space-y-2">
+                                    <template x-if="computedProgress(child.id)!==null">
+                                      <div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                          Progress (computed): <span x-text="Math.round(computedProgress(child.id))"></span>%
+                                        </div>
+                                        <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                          <div class="h-2 bg-blue-500" :style="`width:${computedProgress(child.id)}%`"></div>
+                                        </div>
+                                      </div>
+                                    </template>
+                                    <div>
+                                      <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                        Progress (manual): <span x-text="child.progress !== null && child.progress !== undefined ? child.progress : 0"></span>%
+                                      </div>
+                                      <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-2 bg-slate-900" :style="`width:${child.progress !== null && child.progress !== undefined ? child.progress : 0}%`"></div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </template>
+
+                                <template x-if="(child.type === 'okr_team' || child.type === 'okr_perso') && getKeyResults(child.id).length > 0">
+                                  <div class="mt-3 space-y-2">
+                                    <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
+                                    <template x-for="kr in getKeyResults(child.id)" :key="kr.id">
+                                      <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
+                                        <div class="flex items-start justify-between gap-2">
+                                          <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2">
+                                              <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
+                                              <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
+                                            </div>
+                                            <template x-if="kr.description">
+                                              <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
+                                            </template>
+                                            <template x-if="kr.progress !== null && kr.progress !== undefined">
+                                              <div class="mt-1">
+                                                <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
+                                                <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                  <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
                                                 </div>
-                                              </template>
-                                              <div class="mt-2 flex flex-wrap gap-2">
-                                                <template x-for="t in allowedChildTypes(greatgrandchild.type)" :key="t">
-                                                  <button @click="openCreate(greatgrandchild.id, t)"
-                                                    class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                    ➕ <span x-text="labelType(t)"></span>
-                                                  </button>
-                                                </template>
-                                                <template x-if="greatgrandchild.type === 'okr_team' || greatgrandchild.type === 'okr_perso'">
-                                                  <button @click="openKeyResultsModal(greatgrandchild.id)"
-                                                    class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                    ➕ Key Results
-                                                  </button>
-                                                </template>
                                               </div>
-                                            </div>
-                                            <div class="flex shrink-0 gap-2">
-                                              <button @click="openComments(greatgrandchild.id)"
-                                                class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">💬 Comment</button>
-                                              <button @click="openEdit(greatgrandchild)"
-                                                class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">✏️ Edit</button>
-                                              <button @click="remove(greatgrandchild.id)"
-                                                class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">🗑️ Delete</button>
-                                            </div>
+                                            </template>
+                                          </div>
+                                          <div class="flex gap-1">
+                                            <button @click="openEditKeyResult(kr, child.id)"
+                                              class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                              ✏️ Edit
+                                            </button>
+                                            <button @click="deleteKeyResult(kr.id, child.id)"
+                                              class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                              🗑️ Delete
+                                            </button>
                                           </div>
                                         </div>
-                                        <template x-if="greatgrandchild.type !== 'okr_perso' && isOpen(greatgrandchild.id)">
-                                          <div class="space-y-2">
-                                            <template x-for="okrPerso in childrenOf(greatgrandchild.id)" :key="okrPerso.id">
+                                      </div>
+                                    </template>
+                                  </div>
+                                </template>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                  <template x-for="t in allowedChildTypes(child.type)" :key="t">
+                                    <button @click="openCreate(child.id, t)"
+                                      class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                      ➕ <span x-text="labelType(t)"></span>
+                                    </button>
+                                  </template>
+                                  <template x-if="child.type === 'okr_team' || child.type === 'okr_perso'">
+                                    <button @click="openKeyResultsModal(child.id)"
+                                      class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                      ➕ Key Results
+                                    </button>
+                                  </template>
+                                </div>
+                              </div>
+                              <div class="flex shrink-0 gap-2">
+                                <button @click="openComments(child.id)"
+                                  class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">💬 Comment</button>
+                                <button @click="openEdit(child)"
+                                  class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">✏️ Edit</button>
+                                <button @click="remove(child.id)"
+                                  class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">🗑️ Delete</button>
+                              </div>
+                            </div>
+                          </div>
+                          <template x-if="child.type !== 'okr_perso' && isOpen(child.id)">
+                            <div class="space-y-2">
+                              <template x-for="grandchild in childrenOf(child.id)" :key="grandchild.id">
+                                <div>
+                                  <div class="node-card" :style="indentStyle(grandchild)">
+                                    <div class="flex items-start justify-between gap-3">
+                                      <div class="min-w-0 flex-1">
+                                        <div :class="grandchild.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700' : ''" @click="grandchild.type !== 'okr_perso' ? toggle(grandchild.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
+                                          <template x-if="grandchild.type !== 'okr_perso'">
+                                            <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(grandchild.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                          </template>
+                                          <span class="badge" :class="badgeClass(grandchild.type)" x-text="formatTypeLabel(grandchild.type)"></span>
+                                          <h3 class="font-semibold truncate dark:text-white" x-text="grandchild.title"></h3>
+                                          <template x-if="grandchild.type==='okr_team' && grandchild.team_id">
+                                            <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(grandchild.team_id)"></span>
+                                          </template>
+                                          <template x-if="grandchild.type==='okr_perso' && grandchild.user_id">
+                                            <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(grandchild.user_id)"></span>
+                                          </template>
+                                        </div>
+                                        <template x-if="grandchild.type==='okr_team' && grandchild.owner">
+                                          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="grandchild.owner"></span></p>
+                                        </template>
+                                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="grandchild.description"></p>
+                                        <template x-if="grandchild.type!=='company'">
+                                          <div class="mt-2 space-y-2">
+                                            <template x-if="computedProgress(grandchild.id)!==null">
                                               <div>
-                                                <div class="node-card" :style="indentStyle(okrPerso)">
-                                                  <div class="flex items-start justify-between gap-3">
-                                                    <div class="min-w-0 flex-1">
-                                                      <div :class="okrPerso.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50' : ''" @click="okrPerso.type !== 'okr_perso' ? toggle(okrPerso.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
-                                                        <template x-if="okrPerso.type !== 'okr_perso'">
-                                                          <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(okrPerso.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                                          </svg>
-                                                        </template>
-                                                        <span class="badge" :class="badgeClass(okrPerso.type)" x-text="formatTypeLabel(okrPerso.type)"></span>
-                                                        <h3 class="font-semibold truncate dark:text-white" x-text="okrPerso.title"></h3>
-                                                        <template x-if="okrPerso.type==='okr_team' && okrPerso.team_id">
-                                                          <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(okrPerso.team_id)"></span>
-                                                        </template>
-                                                        <template x-if="okrPerso.type==='okr_perso' && okrPerso.user_id">
-                                                          <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(okrPerso.user_id)"></span>
-                                                        </template>
-                                                      </div>
-                                                      <template x-if="okrPerso.type==='okr_team' && okrPerso.owner">
-                                                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="okrPerso.owner"></span></p>
-                                                      </template>
-                                                      <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="okrPerso.description"></p>
-                                                      <template x-if="okrPerso.type!=='company'">
-                                                        <div class="mt-2 space-y-2">
-                                                          <template x-if="computedProgress(okrPerso.id)!==null">
-                                                            <div>
-                                                              <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                                                Progress (computed): <span x-text="Math.round(computedProgress(okrPerso.id))"></span>%
-                                                              </div>
-                                                              <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                                <div class="h-2 bg-blue-500" :style="`width:${computedProgress(okrPerso.id)}%`"></div>
-                                                              </div>
-                                                            </div>
-                                                          </template>
-                                                          <div>
-                                                            <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                                              Progress (manual): <span x-text="okrPerso.progress !== null && okrPerso.progress !== undefined ? okrPerso.progress : 0"></span>%
-                                                            </div>
-                                                            <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                              <div class="h-2 bg-slate-900" :style="`width:${okrPerso.progress !== null && okrPerso.progress !== undefined ? okrPerso.progress : 0}%`"></div>
-                                                            </div>
-                                                          </div>
-                                                        </div>
-                                                      </template>
+                                                <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                                  Progress (computed): <span x-text="Math.round(computedProgress(grandchild.id))"></span>%
+                                                </div>
+                                                <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                  <div class="h-2 bg-blue-500" :style="`width:${computedProgress(grandchild.id)}%`"></div>
+                                                </div>
+                                              </div>
+                                            </template>
+                                            <div>
+                                              <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                                Progress (manual): <span x-text="grandchild.progress !== null && grandchild.progress !== undefined ? grandchild.progress : 0"></span>%
+                                              </div>
+                                              <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                <div class="h-2 bg-slate-900" :style="`width:${grandchild.progress !== null && grandchild.progress !== undefined ? grandchild.progress : 0}%`"></div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </template>
 
-                                                      <template x-if="(okrPerso.type === 'okr_team' || okrPerso.type === 'okr_perso') && getKeyResults(okrPerso.id).length > 0">
-                                                        <div class="mt-3 space-y-2">
-                                                          <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
-                                                          <template x-for="kr in getKeyResults(okrPerso.id)" :key="kr.id">
-                                                            <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
-                                                              <div class="flex items-start justify-between gap-2">
-                                                                <div class="flex-1 min-w-0">
-                                                                  <div class="flex items-center gap-2">
-                                                                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
-                                                                    <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
-                                                                  </div>
-                                                                  <template x-if="kr.description">
-                                                                    <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
-                                                                  </template>
-                                                                  <template x-if="kr.progress !== null && kr.progress !== undefined">
-                                                                    <div class="mt-1">
-                                                                      <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
-                                                                      <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                                        <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
-                                                                      </div>
-                                                                    </div>
-                                                                  </template>
-                                                                </div>
-                                                                <div class="flex gap-1">
-                                                                  <button @click="openEditKeyResult(kr, okrPerso.id)"
-                                                                    class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                                    ✏️ Edit
-                                                                  </button>
-                                                                  <button @click="deleteKeyResult(kr.id, okrPerso.id)"
-                                                                    class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                                    🗑️ Delete
-                                                                  </button>
-                                                                </div>
-                                                              </div>
-                                                            </div>
-                                                          </template>
+                                        <template x-if="(grandchild.type === 'okr_team' || grandchild.type === 'okr_perso') && getKeyResults(grandchild.id).length > 0">
+                                          <div class="mt-3 space-y-2">
+                                            <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
+                                            <template x-for="kr in getKeyResults(grandchild.id)" :key="kr.id">
+                                              <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
+                                                <div class="flex items-start justify-between gap-2">
+                                                  <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2">
+                                                      <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
+                                                      <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
+                                                    </div>
+                                                    <template x-if="kr.description">
+                                                      <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
+                                                    </template>
+                                                    <template x-if="kr.progress !== null && kr.progress !== undefined">
+                                                      <div class="mt-1">
+                                                        <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
+                                                        <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                          <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
                                                         </div>
-                                                      </template>
-                                                      <div class="mt-2 flex flex-wrap gap-2">
-                                                        <template x-for="t in allowedChildTypes(okrPerso.type)" :key="t">
-                                                          <button @click="openCreate(okrPerso.id, t)"
-                                                            class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                            ➕ <span x-text="labelType(t)"></span>
-                                                          </button>
-                                                        </template>
-                                                        <template x-if="okrPerso.type === 'okr_team' || okrPerso.type === 'okr_perso'">
-                                                          <button @click="openKeyResultsModal(okrPerso.id)"
-                                                            class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
-                                                            ➕ Key Results
-                                                          </button>
-                                                        </template>
                                                       </div>
-                                                    </div>
-                                                    <div class="flex shrink-0 gap-2">
-                                                      <button @click="openComments(okrPerso.id)"
-                                                        class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">💬 Comment</button>
-                                                      <button @click="openEdit(okrPerso)"
-                                                        class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">✏️ Edit</button>
-                                                      <button @click="remove(okrPerso.id)"
-                                                        class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">🗑️ Delete</button>
-                                                    </div>
+                                                    </template>
+                                                  </div>
+                                                  <div class="flex gap-1">
+                                                    <button @click="openEditKeyResult(kr, grandchild.id)"
+                                                      class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                      ✏️ Edit
+                                                    </button>
+                                                    <button @click="deleteKeyResult(kr.id, grandchild.id)"
+                                                      class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                      🗑️ Delete
+                                                    </button>
                                                   </div>
                                                 </div>
                                               </div>
                                             </template>
                                           </div>
                                         </template>
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                          <template x-for="t in allowedChildTypes(grandchild.type)" :key="t">
+                                            <button @click="openCreate(grandchild.id, t)"
+                                              class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                              ➕ <span x-text="labelType(t)"></span>
+                                            </button>
+                                          </template>
+                                          <template x-if="grandchild.type === 'okr_team' || grandchild.type === 'okr_perso'">
+                                            <button @click="openKeyResultsModal(grandchild.id)"
+                                              class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                              ➕ Key Results
+                                            </button>
+                                          </template>
+                                        </div>
                                       </div>
-                                    </template>
+                                      <div class="flex shrink-0 gap-2">
+                                        <button @click="openComments(grandchild.id)"
+                                          class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">💬 Comment</button>
+                                        <button @click="openEdit(grandchild)"
+                                          class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">✏️ Edit</button>
+                                        <button @click="remove(grandchild.id)"
+                                          class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">🗑️ Delete</button>
+                                      </div>
+                                    </div>
                                   </div>
-                                </template>
-                              </div>
-                            </template>
-                          </div>
-                        </template>
-                      </div>
-                    </template>
+                                  <template x-if="grandchild.type !== 'okr_perso' && isOpen(grandchild.id)">
+                                    <div class="space-y-2">
+                                      <template x-for="greatgrandchild in childrenOf(grandchild.id)" :key="greatgrandchild.id">
+                                        <div>
+                                          <div class="node-card" :style="indentStyle(greatgrandchild)">
+                                            <div class="flex items-start justify-between gap-3">
+                                              <div class="min-w-0 flex-1">
+                                                <div :class="greatgrandchild.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50' : ''" @click="greatgrandchild.type !== 'okr_perso' ? toggle(greatgrandchild.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
+                                                  <template x-if="greatgrandchild.type !== 'okr_perso'">
+                                                    <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(greatgrandchild.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                    </svg>
+                                                  </template>
+                                                  <span class="badge" :class="badgeClass(greatgrandchild.type)" x-text="formatTypeLabel(greatgrandchild.type)"></span>
+                                                  <h3 class="font-semibold truncate dark:text-white" x-text="greatgrandchild.title"></h3>
+                                                  <template x-if="greatgrandchild.type==='okr_team' && greatgrandchild.team_id">
+                                                    <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(greatgrandchild.team_id)"></span>
+                                                  </template>
+                                                  <template x-if="greatgrandchild.type==='okr_perso' && greatgrandchild.user_id">
+                                                    <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(greatgrandchild.user_id)"></span>
+                                                  </template>
+                                                </div>
+                                                <template x-if="greatgrandchild.type==='okr_team' && greatgrandchild.owner">
+                                                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="greatgrandchild.owner"></span></p>
+                                                </template>
+                                                <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="greatgrandchild.description"></p>
+                                                <template x-if="greatgrandchild.type!=='company'">
+                                                  <div class="mt-2 space-y-2">
+                                                    <template x-if="computedProgress(greatgrandchild.id)!==null">
+                                                      <div>
+                                                        <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                                          Progress (computed): <span x-text="Math.round(computedProgress(greatgrandchild.id))"></span>%
+                                                        </div>
+                                                        <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                          <div class="h-2 bg-blue-500" :style="`width:${computedProgress(greatgrandchild.id)}%`"></div>
+                                                        </div>
+                                                      </div>
+                                                    </template>
+                                                    <div>
+                                                      <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                                        Progress (manual): <span x-text="greatgrandchild.progress !== null && greatgrandchild.progress !== undefined ? greatgrandchild.progress : 0"></span>%
+                                                      </div>
+                                                      <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                        <div class="h-2 bg-slate-900" :style="`width:${greatgrandchild.progress !== null && greatgrandchild.progress !== undefined ? greatgrandchild.progress : 0}%`"></div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                </template>
+
+                                                <template x-if="(greatgrandchild.type === 'okr_team' || greatgrandchild.type === 'okr_perso') && getKeyResults(greatgrandchild.id).length > 0">
+                                                  <div class="mt-3 space-y-2">
+                                                    <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
+                                                    <template x-for="kr in getKeyResults(greatgrandchild.id)" :key="kr.id">
+                                                      <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
+                                                        <div class="flex items-start justify-between gap-2">
+                                                          <div class="flex-1 min-w-0">
+                                                            <div class="flex items-center gap-2">
+                                                              <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
+                                                              <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
+                                                            </div>
+                                                            <template x-if="kr.description">
+                                                              <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
+                                                            </template>
+                                                            <template x-if="kr.progress !== null && kr.progress !== undefined">
+                                                              <div class="mt-1">
+                                                                <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
+                                                                <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                                  <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
+                                                                </div>
+                                                              </div>
+                                                            </template>
+                                                          </div>
+                                                          <div class="flex gap-1">
+                                                            <button @click="openEditKeyResult(kr, greatgrandchild.id)"
+                                                              class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                              ✏️ Edit
+                                                            </button>
+                                                            <button @click="deleteKeyResult(kr.id, greatgrandchild.id)"
+                                                              class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                              🗑️ Delete
+                                                            </button>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    </template>
+                                                  </div>
+                                                </template>
+                                                <div class="mt-2 flex flex-wrap gap-2">
+                                                  <template x-for="t in allowedChildTypes(greatgrandchild.type)" :key="t">
+                                                    <button @click="openCreate(greatgrandchild.id, t)"
+                                                      class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                      ➕ <span x-text="labelType(t)"></span>
+                                                    </button>
+                                                  </template>
+                                                  <template x-if="greatgrandchild.type === 'okr_team' || greatgrandchild.type === 'okr_perso'">
+                                                    <button @click="openKeyResultsModal(greatgrandchild.id)"
+                                                      class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                      ➕ Key Results
+                                                    </button>
+                                                  </template>
+                                                </div>
+                                              </div>
+                                              <div class="flex shrink-0 gap-2">
+                                                <button @click="openComments(greatgrandchild.id)"
+                                                  class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">💬 Comment</button>
+                                                <button @click="openEdit(greatgrandchild)"
+                                                  class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">✏️ Edit</button>
+                                                <button @click="remove(greatgrandchild.id)"
+                                                  class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">🗑️ Delete</button>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <template x-if="greatgrandchild.type !== 'okr_perso' && isOpen(greatgrandchild.id)">
+                                            <div class="space-y-2">
+                                              <template x-for="okrPerso in childrenOf(greatgrandchild.id)" :key="okrPerso.id">
+                                                <div>
+                                                  <div class="node-card" :style="indentStyle(okrPerso)">
+                                                    <div class="flex items-start justify-between gap-3">
+                                                      <div class="min-w-0 flex-1">
+                                                        <div :class="okrPerso.type !== 'okr_perso' ? 'cursor-pointer hover:bg-slate-50' : ''" @click="okrPerso.type !== 'okr_perso' ? toggle(okrPerso.id) : null" class="flex items-center gap-3 -mx-2 px-2 py-1.5 rounded transition-colors group">
+                                                          <template x-if="okrPerso.type !== 'okr_perso'">
+                                                            <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform" :class="{'rotate-90': isOpen(okrPerso.id)}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                            </svg>
+                                                          </template>
+                                                          <span class="badge" :class="badgeClass(okrPerso.type)" x-text="formatTypeLabel(okrPerso.type)"></span>
+                                                          <h3 class="font-semibold truncate dark:text-white" x-text="okrPerso.title"></h3>
+                                                          <template x-if="okrPerso.type==='okr_team' && okrPerso.team_id">
+                                                            <span class="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium" x-text="getTeamName(okrPerso.team_id)"></span>
+                                                          </template>
+                                                          <template x-if="okrPerso.type==='okr_perso' && okrPerso.user_id">
+                                                            <span class="text-xs px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 font-medium" x-text="getUserName(okrPerso.user_id)"></span>
+                                                          </template>
+                                                        </div>
+                                                        <template x-if="okrPerso.type==='okr_team' && okrPerso.owner">
+                                                          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Owner: <span x-text="okrPerso.owner"></span></p>
+                                                        </template>
+                                                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line" x-text="okrPerso.description"></p>
+                                                        <template x-if="okrPerso.type!=='company'">
+                                                          <div class="mt-2 space-y-2">
+                                                            <template x-if="computedProgress(okrPerso.id)!==null">
+                                                              <div>
+                                                                <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                                                  Progress (computed): <span x-text="Math.round(computedProgress(okrPerso.id))"></span>%
+                                                                </div>
+                                                                <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                                  <div class="h-2 bg-blue-500" :style="`width:${computedProgress(okrPerso.id)}%`"></div>
+                                                                </div>
+                                                              </div>
+                                                            </template>
+                                                            <div>
+                                                              <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                                                Progress (manual): <span x-text="okrPerso.progress !== null && okrPerso.progress !== undefined ? okrPerso.progress : 0"></span>%
+                                                              </div>
+                                                              <div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                                <div class="h-2 bg-slate-900" :style="`width:${okrPerso.progress !== null && okrPerso.progress !== undefined ? okrPerso.progress : 0}%`"></div>
+                                                              </div>
+                                                            </div>
+                                                          </div>
+                                                        </template>
+
+                                                        <template x-if="(okrPerso.type === 'okr_team' || okrPerso.type === 'okr_perso') && getKeyResults(okrPerso.id).length > 0">
+                                                          <div class="mt-3 space-y-2">
+                                                            <div class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Key Results:</div>
+                                                            <template x-for="kr in getKeyResults(okrPerso.id)" :key="kr.id">
+                                                              <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">
+                                                                <div class="flex items-start justify-between gap-2">
+                                                                  <div class="flex-1 min-w-0">
+                                                                    <div class="flex items-center gap-2">
+                                                                      <span class="text-xs font-semibold text-slate-700 dark:text-slate-200" x-text="kr.name"></span>
+                                                                      <span class="text-xs text-slate-500">(weight: <span x-text="kr.weight"></span>)</span>
+                                                                    </div>
+                                                                    <template x-if="kr.description">
+                                                                      <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" x-text="kr.description"></p>
+                                                                    </template>
+                                                                    <template x-if="kr.progress !== null && kr.progress !== undefined">
+                                                                      <div class="mt-1">
+                                                                        <div class="text-xs text-slate-500 mb-0.5">Progress: <span x-text="kr.progress"></span>%</div>
+                                                                        <div class="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                                          <div class="h-1.5 bg-green-500" :style="`width:${kr.progress}%`"></div>
+                                                                        </div>
+                                                                      </div>
+                                                                    </template>
+                                                                  </div>
+                                                                  <div class="flex gap-1">
+                                                                    <button @click="openEditKeyResult(kr, okrPerso.id)"
+                                                                      class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                                      ✏️ Edit
+                                                                    </button>
+                                                                    <button @click="deleteKeyResult(kr.id, okrPerso.id)"
+                                                                      class="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                                      🗑️ Delete
+                                                                    </button>
+                                                                  </div>
+                                                                </div>
+                                                              </div>
+                                                            </template>
+                                                          </div>
+                                                        </template>
+                                                        <div class="mt-2 flex flex-wrap gap-2">
+                                                          <template x-for="t in allowedChildTypes(okrPerso.type)" :key="t">
+                                                            <button @click="openCreate(okrPerso.id, t)"
+                                                              class="text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                              ➕ <span x-text="labelType(t)"></span>
+                                                            </button>
+                                                          </template>
+                                                          <template x-if="okrPerso.type === 'okr_team' || okrPerso.type === 'okr_perso'">
+                                                            <button @click="openKeyResultsModal(okrPerso.id)"
+                                                              class="text-xs px-2 py-1 rounded-md bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800 text-green-700 dark:text-green-200 transition-all duration-200 hover:shadow-sm hover:scale-105">
+                                                              ➕ Key Results
+                                                            </button>
+                                                          </template>
+                                                        </div>
+                                                      </div>
+                                                      <div class="flex shrink-0 gap-2">
+                                                        <button @click="openComments(okrPerso.id)"
+                                                          class="text-sm px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 dark:text-blue-200 transition-all duration-200 hover:shadow-md hover:scale-105">💬 Comment</button>
+                                                        <button @click="openEdit(okrPerso)"
+                                                          class="text-sm px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-600 hover:bg-slate-200 dark:hover:bg-slate-500 dark:text-white transition-all duration-200 hover:shadow-md hover:scale-105">✏️ Edit</button>
+                                                        <button @click="remove(okrPerso.id)"
+                                                          class="text-sm px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 dark:text-red-200 transition-all duration-200 hover:shadow-md hover:scale-105">🗑️ Delete</button>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </template>
+                                            </div>
+                                          </template>
+                                        </div>
+                                      </template>
+                                    </div>
+                                  </template>
+                                </div>
+                              </template>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <div x-show="viewMode === 'mindmap'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="rounded-2xl border-2 border-slate-200 dark:border-slate-600 mindmap-view min-h-[70vh] relative flex flex-col">
+    <template x-if="loading">
+      <div class="flex items-center justify-center min-h-[70vh] text-slate-500 dark:text-slate-400">Loading…</div>
+    </template>
+    <template x-if="!loading && roots().length === 0">
+      <div class="flex items-center justify-center min-h-[70vh] text-slate-500 dark:text-slate-400">No data.</div>
+    </template>
+    <template x-if="!loading && roots().length > 0">
+      <div class="mindmap-scroll flex-1 overflow-auto p-8" @wheel="mindmapHandleWheel($event)">
+        <div class="mindmap-zoom-wrapper" :style="mindmapZoomWrapperStyle()">
+          <div class="mindmap-container relative" :style="mindmapContainerStyle()">
+            <template x-for="p in mindmapData().placements" :key="p.node.id">
+              <div class="mindmap-node absolute rounded-2xl border-2 shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex flex-col justify-center px-5 py-3 min-w-[200px] max-w-[280px]"
+                :class="mindmapNodeClass(p.node.type)"
+                :style="`left:${p.x}px;top:${p.y}px;width:260px;min-height:72px;`">
+                <span class="text-xs font-semibold uppercase tracking-wide opacity-90" x-text="formatTypeLabel(p.node.type)"></span>
+                <span class="font-semibold text-slate-900 dark:text-white truncate mt-0.5" x-text="p.node.title"></span>
+                <template x-if="(p.node.type === 'okr_team' || p.node.type === 'okr_perso') && (computedProgress(p.node.id) !== null)">
+                  <div class="mt-2 flex items-center gap-2">
+                    <div class="flex-1 h-1.5 bg-white/30 dark:bg-black/20 rounded-full overflow-hidden">
+                      <div class="h-full bg-white/90 dark:bg-white/80 rounded-full" :style="`width:${computedProgress(p.node.id)}%`"></div>
+                    </div>
+                    <span class="text-xs font-medium opacity-90" x-text="Math.round(computedProgress(p.node.id)) + '%'"></span>
                   </div>
                 </template>
               </div>
             </template>
+            <svg class="mindmap-svg absolute left-0 top-0 pointer-events-none z-10" :width="mindmapData().width" :height="mindmapData().height" xmlns="http://www.w3.org/2000/svg">
+              <path fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" :d="mindmapAllPathsD()" :stroke="mindmapEdgeStrokeColor()" />
+            </svg>
           </div>
-        </template>
+        </div>
+      </div>
+    </template>
+    <template x-if="!loading && roots().length > 0">
+      <div class="mindmap-zoom-controls absolute bottom-4 right-4 flex gap-2 z-20">
+        <button type="button" @click="mindmapZoomOut()"
+          class="w-11 h-11 rounded-xl bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-600 dark:text-white font-bold text-lg transition-all duration-200 hover:scale-105 disabled:opacity-40 disabled:pointer-events-none"
+          :disabled="mindmapZoom <= mindmapZoomMin">−</button>
+        <span class="flex items-center justify-center min-w-[3rem] px-2 text-sm font-semibold text-slate-600 dark:text-slate-300" x-text="Math.round(mindmapZoom * 100) + '%'"></span>
+        <button type="button" @click="mindmapZoomIn()"
+          class="w-11 h-11 rounded-xl bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-600 dark:text-white font-bold text-lg transition-all duration-200 hover:scale-105 disabled:opacity-40 disabled:pointer-events-none"
+          :disabled="mindmapZoom >= mindmapZoomMax">+</button>
       </div>
     </template>
   </div>
@@ -1286,6 +1351,32 @@
 </div>
 
 <style>
+  .mindmap-view {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #f8fafc 100%);
+    background-size: 100% 100%;
+  }
+
+  .dark .mindmap-view {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  }
+
+  .mindmap-container {
+    min-width: 100%;
+    min-height: 100%;
+  }
+
+  .mindmap-node {
+    z-index: 1;
+  }
+
+  .mindmap-edge-stroke {
+    stroke: #64748b;
+  }
+
+  .dark .mindmap-edge-stroke {
+    stroke: #94a3b8;
+  }
+
   .node-card {
     border: 1px solid #e2e8f0;
     background: white;
@@ -1530,6 +1621,11 @@
       },
       renderKey: 0,
       allExpanded: true,
+      viewMode: 'edit',
+      mindmapZoom: 1,
+      mindmapZoomMin: 0.25,
+      mindmapZoomMax: 2,
+      mindmapZoomStep: 0.25,
 
       async init() {
         await this.loadProfile()
@@ -1796,6 +1892,150 @@
       updateAllExpanded() {
         const allIds = this.getAllNodeIds()
         this.allExpanded = allIds.length > 0 && allIds.every(id => this.openSet.has(id))
+      },
+
+      mindmapLayoutNode(node, x, y) {
+        const NODE_W = 260
+        const NODE_H = 72
+        const GAP_X = 90
+        const GAP_Y = 28
+        const placements = [{
+          node,
+          x,
+          y
+        }]
+        const children = this.childrenOf(node.id)
+        if (children.length === 0) {
+          return {
+            placements,
+            edges: [],
+            height: NODE_H
+          }
+        }
+        const childResults = children.map(c => this.mindmapLayoutNode(c, x + NODE_W + GAP_X, 0))
+        const totalHeight = childResults.reduce((s, r) => s + r.height, 0) + (children.length - 1) * GAP_Y
+        let curY = y
+        const allPlacements = [...placements]
+        const allEdges = []
+        for (let i = 0; i < children.length; i++) {
+          const r = childResults[i]
+          allPlacements.push(...r.placements.map(p => ({
+            node: p.node,
+            x: p.x,
+            y: p.y + curY
+          })))
+          allEdges.push(...r.edges.map(e => ({
+            from: {
+              x: e.from.x,
+              y: e.from.y + curY
+            },
+            to: {
+              x: e.to.x,
+              y: e.to.y + curY
+            }
+          })))
+          allEdges.push({
+            from: {
+              x: x + NODE_W,
+              y: y + NODE_H / 2
+            },
+            to: {
+              x: x + NODE_W + GAP_X,
+              y: curY + NODE_H / 2
+            }
+          })
+          curY += r.height + GAP_Y
+        }
+        return {
+          placements: allPlacements,
+          edges: allEdges,
+          height: totalHeight
+        }
+      },
+
+      mindmapData() {
+        const roots = this.roots()
+        if (!roots.length) return {
+          placements: [],
+          edges: [],
+          width: 0,
+          height: 0
+        }
+        const NODE_W = 260
+        const NODE_H = 72
+        const GAP_Y = 28
+        const PAD = 48
+        let startY = 0
+        const allPlacements = []
+        const allEdges = []
+        for (const root of roots) {
+          const result = this.mindmapLayoutNode(root, 0, startY)
+          allPlacements.push(...result.placements)
+          allEdges.push(...result.edges)
+          startY += result.height + GAP_Y
+        }
+        let maxX = 0
+        let maxY = 0
+        for (const p of allPlacements) {
+          maxX = Math.max(maxX, p.x + NODE_W)
+          maxY = Math.max(maxY, p.y + NODE_H)
+        }
+        return {
+          placements: allPlacements,
+          edges: allEdges,
+          width: maxX + PAD,
+          height: maxY + PAD
+        }
+      },
+
+      mindmapContainerStyle() {
+        const d = this.mindmapData()
+        return `width:${d.width}px;height:${d.height}px;transform:scale(${this.mindmapZoom});transform-origin:0 0;`
+      },
+
+      mindmapZoomWrapperStyle() {
+        const d = this.mindmapData()
+        return `width:${d.width * this.mindmapZoom}px;height:${d.height * this.mindmapZoom}px;`
+      },
+
+      mindmapZoomIn() {
+        this.mindmapZoom = Math.min(this.mindmapZoomMax, this.mindmapZoom + this.mindmapZoomStep)
+      },
+
+      mindmapZoomOut() {
+        this.mindmapZoom = Math.max(this.mindmapZoomMin, this.mindmapZoom - this.mindmapZoomStep)
+      },
+
+      mindmapHandleWheel(e) {
+        if (!e.ctrlKey && !e.metaKey) return
+        e.preventDefault()
+        if (e.deltaY < 0) this.mindmapZoomIn()
+        else this.mindmapZoomOut()
+      },
+
+      mindmapEdgePath(edge) {
+        const dx = edge.to.x - edge.from.x
+        const cpx = edge.from.x + dx * 0.5
+        return `M ${edge.from.x} ${edge.from.y} C ${cpx} ${edge.from.y}, ${cpx} ${edge.to.y}, ${edge.to.x} ${edge.to.y}`
+      },
+
+      mindmapAllPathsD() {
+        const edges = this.mindmapData().edges
+        return edges.map(e => this.mindmapEdgePath(e)).join(' ')
+      },
+
+      mindmapEdgeStrokeColor() {
+        return document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#334155'
+      },
+
+      mindmapNodeClass(type) {
+        const classes = {
+          company: 'bg-slate-800 dark:bg-slate-700 border-slate-600 text-white',
+          axis: 'bg-indigo-500 dark:bg-indigo-600 border-indigo-600 dark:border-indigo-500 text-white',
+          okr_team: 'bg-amber-400 dark:bg-amber-500 border-amber-600 dark:border-amber-400 text-slate-900',
+          okr_perso: 'bg-purple-500 dark:bg-purple-600 border-purple-600 dark:border-purple-500 text-white'
+        }
+        return classes[type] || 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white'
       },
 
       allowedChildTypes(t) {
